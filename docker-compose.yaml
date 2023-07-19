@@ -1,0 +1,10 @@
+services:
+  morooi-telegram-bot-go:
+    container_name: morooi-telegram-bot-go
+    image: morooi/morooi-telegram-bot-go:latest
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /home/user/telegram.db:/app/telegram.db
+    environment:
+      TOKEN: "YOUR TELEGRAM BOT API TOKEN"
+    restart: unless-stopped
