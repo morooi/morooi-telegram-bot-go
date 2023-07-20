@@ -48,7 +48,7 @@ jobs:
       - name: Get project dependencies
         run: go mod download
 
-      - name: Build Code
+      - name: Build code
         run: go build -v -o ${{ env.ASSET_NAME }}
 
       - name: Upload files to Artifacts
@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Copy Dockerfile
-        run: copy .github/workflows/Dockerfile ./
+        run: cp .github/workflows/Dockerfile ./
 
       - name: Build and push
         uses: docker/build-push-action@v4
