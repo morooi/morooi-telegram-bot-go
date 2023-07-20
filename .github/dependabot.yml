@@ -11,3 +11,5 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "00:48"
+      timezone: "Asia/Shanghai"
