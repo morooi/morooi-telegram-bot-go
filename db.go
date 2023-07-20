@@ -2,12 +2,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
-
-const BwgTable = "bwg_api_key"
 
 const schema = `
 	CREATE TABLE IF NOT EXISTS bwg_api_key (
@@ -28,11 +25,10 @@ type BwgApiKey struct {
 }
 
 func InitSqlite() {
-	db, _ = sqlx.Connect("sqlite3", "./telegram.db")
-	query := fmt.Sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '%s';", BwgTable)
+	db, _ = sqlx.Open("sqlite3", "telegram.db")
 
 	var name string
-	err := db.Get(&name, query)
+	err := db.Get(&name, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bwg_api_key'")
 	if err != nil {
 		log.Info("初始化数据库...")
 		_, _ = db.Exec(schema)
