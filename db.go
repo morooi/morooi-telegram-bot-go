@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/logoove/sqlite"
+	log "github.com/sirupsen/logrus"
 )
 
 const schema = `
