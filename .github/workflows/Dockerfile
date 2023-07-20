@@ -5,7 +5,7 @@ ARG TARGETOS
 ARG TARGETARCH
 
 WORKDIR /app
-COPY asset/bot-$TARGETOS-$TARGETARCH /app/bot
+COPY asset/bot-${TARGETOS}-${TARGETARCH} /app/bot
 COPY telegram.db /app/telegram.db
 
 # 设置时区
