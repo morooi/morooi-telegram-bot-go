@@ -3,6 +3,7 @@ MAINTAINER SJ Zhou <morooiu@gmail.com>
 
 WORKDIR /app
 COPY bot /app/bot
+COPY telegram.db /app/telegram.db
 
 # 设置时区
 ENV TZ=Asia/Shanghai
