@@ -2,7 +2,7 @@ FROM --platform=$TARGETPLATFORM alpine:latest
 MAINTAINER SJ Zhou <morooiu@gmail.com>
 
 WORKDIR /app
-COPY bot /app/bot
+COPY asset/bot-$TARGETOS-$TARGETARCH /app/bot
 COPY telegram.db /app/telegram.db
 
 # 设置时区

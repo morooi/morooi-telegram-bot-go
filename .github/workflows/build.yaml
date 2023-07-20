@@ -13,27 +13,6 @@ env:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            platform: linux/amd64
-          - goos: linux
-            goarch: arm64
-            platform: linux/arm64
-          - goos: darwin
-            goarch: amd64
-            platform: darwin/amd64
-          - goos: darwin
-            goarch: arm64
-            platform: darwin/arm64
-
-    env:
-      GOOS: ${{ matrix.goos }}
-      GOARCH: ${{ matrix.goarch }}
-      CGO_ENABLED: 0
 
     steps:
       - name: Checkout code
@@ -49,13 +28,17 @@ jobs:
         run: go mod download
 
       - name: Build code
-        run: go build -v -o ${{ env.ASSET_NAME }}
+        run: |
+          GOOS=linux GOARCH=amd64 go build -v -o asset/${{ env.ASSET_NAME }}-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -v -o asset/${{ env.ASSET_NAME }}-linux-arm64
+          GOOS=darwin GOARCH=amd64 go build -v -o asset/${{ env.ASSET_NAME }}-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -v -o asset/${{ env.ASSET_NAME }}-darwin-arm64
 
       - name: Upload files to Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET_NAME }}
-          path: ${{ env.ASSET_NAME }}
+          name: bot
+          path: asset/*
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -77,5 +60,5 @@ jobs:
         with:
           context: .
           push: true
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64
           tags: ${{ env.IMAGE_NAME }}:latest
