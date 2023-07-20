@@ -1,6 +1,9 @@
 FROM --platform=$TARGETPLATFORM alpine:latest
 MAINTAINER SJ Zhou <morooiu@gmail.com>
 
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /app
 COPY asset/bot-$TARGETOS-$TARGETARCH /app/bot
 COPY telegram.db /app/telegram.db
