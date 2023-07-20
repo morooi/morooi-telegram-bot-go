@@ -44,7 +44,7 @@ func StartHandler(c tele.Context) error {
 	lastName := message.Sender.LastName
 
 	reply := fmt.Sprintf("%s %s，欢迎使用 morooi's Bot", firstName, lastName)
-	return c.Send(reply, tele.ModeMarkdownV2)
+	return c.Send(reply)
 }
 
 func InfoHandler(c tele.Context) error {
@@ -54,14 +54,14 @@ func InfoHandler(c tele.Context) error {
 	lastName := message.Sender.LastName
 
 	reply := fmt.Sprintf("*INFO*\nfirstName: %s\nlastName: %s\nuserId: %d", firstName, lastName, id)
-	return c.Send(reply, tele.ModeMarkdownV2)
+	return c.Send(reply)
 }
 
 func BwgBindHandler(c tele.Context) error {
 	message := c.Message()
 	args := c.Args()
 	if len(args) != 2 {
-		return c.Send("请在命令后指定您的 VEID 和 API KEY，用空格分隔\n如：`/bwg_bind VEID API_KEY`", tele.ModeMarkdownV2)
+		return c.Send("请在命令后指定您的 VEID 和 API KEY，用空格分隔\n如：`/bwg_bind VEID API_KEY`")
 	}
 
 	userId := message.Sender.ID
@@ -71,16 +71,16 @@ func BwgBindHandler(c tele.Context) error {
 	if err != nil {
 		insertErr := Insert(bwgApiKey)
 		if insertErr != nil {
-			return c.Send("*绑定失败*！\n请稍后再试", tele.ModeMarkdownV2)
+			return c.Send("*绑定失败*！\n请稍后再试")
 		}
 	} else {
 		updateErr := UpdateByUserId(bwgApiKey)
 		if updateErr != nil {
-			return c.Send("*绑定失败*！\n请稍后再试", tele.ModeMarkdownV2)
+			return c.Send("*绑定失败*！\n请稍后再试")
 		}
 	}
 
-	return c.Send("*绑定成功*！\n请使用 /bwg\\_info 命令获取信息", tele.ModeMarkdownV2)
+	return c.Send("*绑定成功*！\n请使用 /bwg\\_info 命令获取信息")
 }
 
 func BwgInfoHandler(c tele.Context) error {
@@ -89,12 +89,12 @@ func BwgInfoHandler(c tele.Context) error {
 
 	bwgApiKey, err := SelectByUserId(userId)
 	if err != nil {
-		return c.Send("请先使用 /bwg\\_bind 命令绑定 VEID 和 API KEY", tele.ModeMarkdownV2)
+		return c.Send("请先使用 /bwg\\_bind 命令绑定 VEID 和 API KEY")
 	}
 
 	info, err := GetBwgServerInfo(bwgApiKey.Veid, bwgApiKey.ApiKey)
 	if err != nil || info == nil || info.Error != 0 {
-		return c.Send("获取服务器信息失败，请确认 VEID 和 API KEY 是否正确\n确认后重新使用 /bwg\\_bind 命令更新信息", tele.ModeMarkdownV2)
+		return c.Send("获取服务器信息失败，请确认 VEID 和 API KEY 是否正确\n确认后重新使用 /bwg\\_bind 命令更新信息")
 	}
 
 	hostname := ReplaceForMarkdownV2(info.HostName)
@@ -110,7 +110,7 @@ func BwgInfoHandler(c tele.Context) error {
 	reply := fmt.Sprintf("*主机名*：%s\n*IP*：`%s`\n*数据中心*：%s\n*流量使用情况*：%s GB / %s GB \\(%s %%\\)\n*流量重置时间*：%s\n*距离重置还有*：%s",
 		hostname, ipAddresses, nodeDatacenter, dataCounter, planMonthlyData, dataPercent, dataNextReset, duration)
 
-	return c.Send(reply, tele.ModeMarkdownV2)
+	return c.Send(reply)
 }
 
 func TextHandler(c tele.Context) error {

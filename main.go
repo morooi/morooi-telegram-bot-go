@@ -28,8 +28,9 @@ func main() {
 
 func InitBot() {
 	pref := tele.Settings{
-		Token:  os.Getenv("TOKEN"),
-		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+		Token:     os.Getenv("TOKEN"),
+		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
+		ParseMode: tele.ModeMarkdownV2,
 	}
 
 	b, err := tele.NewBot(pref)
