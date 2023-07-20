@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/logoove/sqlite v1.15.3
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.9.3
 	gopkg.in/telebot.v3 v3.1.3
