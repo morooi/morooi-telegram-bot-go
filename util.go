@@ -1,8 +1,13 @@
 package main
 
 import (
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
+	"golang.org/x/crypto/chacha20poly1305"
 	tele "gopkg.in/telebot.v3"
+	"os"
 	"regexp"
 	"time"
 )
@@ -41,4 +46,63 @@ func GetDuration(date time.Time) string {
 	} else {
 		return fmt.Sprintf("%d分钟", diffMinutes)
 	}
+}
+
+// 全局加密实例
+var chachaCipher cipher.AEAD
+
+func InitChacha20() {
+	encryptionKey := os.Getenv("KEY")
+	if len(encryptionKey) == 0 {
+		panic("加密密钥不可以为空")
+	}
+
+	keyBytes := []byte(encryptionKey)
+	var err error
+	chachaCipher, err = chacha20poly1305.New(keyBytes)
+	if err != nil {
+		panic("初始化加密实例失败：" + err.Error())
+	}
+}
+
+func encryptString(plaintext string) (string, error) {
+	// 将输入字符串转换为字节切片
+	plaintextBytes := []byte(plaintext)
+
+	// 随机生成 12 字节的 nonce
+	nonce := make([]byte, chacha20poly1305.NonceSize)
+	if _, err := rand.Read(nonce); err != nil {
+		return "", err
+	}
+
+	// 使用全局加密实例进行加密
+	ciphertext := chachaCipher.Seal(nil, nonce, plaintextBytes, nil)
+
+	// 将 nonce 和加密后的数据合并
+	ciphertextWithNonce := append(nonce, ciphertext...)
+
+	// 将加密后的字节切片转换为 base64 编码的字符串
+	ciphertextBase64 := base64.StdEncoding.EncodeToString(ciphertextWithNonce)
+
+	return ciphertextBase64, nil
+}
+
+func decryptString(ciphertextBase64 string) (string, error) {
+	// 将输入字符串转换为字节切片
+	ciphertextWithNonce, err := base64.StdEncoding.DecodeString(ciphertextBase64)
+	if err != nil {
+		return "", err
+	}
+
+	// 提取 nonce
+	nonce := ciphertextWithNonce[:chacha20poly1305.NonceSize]
+	ciphertext := ciphertextWithNonce[chacha20poly1305.NonceSize:]
+
+	// 使用全局加密实例进行解密
+	decryptedText, err := chachaCipher.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(decryptedText), nil
 }

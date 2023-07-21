@@ -7,4 +7,5 @@ services:
       - /home/user/telegram.db:/app/telegram.db
     environment:
       TOKEN: "YOUR TELEGRAM BOT API TOKEN"
+      KEY: "YOUR ENCRYPTION KEY"
     restart: unless-stopped

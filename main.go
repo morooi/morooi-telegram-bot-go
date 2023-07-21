@@ -14,6 +14,7 @@ func main() {
 	InitSqlite()
 	InitBot()
 	InitCommandHandler()
+	InitChacha20()
 
 	for command := range commandHandlers {
 		commandHandler := commandHandlers[command]

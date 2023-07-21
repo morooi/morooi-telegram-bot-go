@@ -65,7 +65,10 @@ func BwgBindHandler(c tele.Context) error {
 	}
 
 	userId := message.Sender.ID
-	bwgApiKey := &BwgApiKey{UserId: userId, Veid: args[0], ApiKey: args[1]}
+
+	encryptedVeid, _ := encryptString(args[0])
+	encryptedApiKey, _ := encryptString(args[1])
+	bwgApiKey := &BwgApiKey{UserId: userId, Veid: encryptedVeid, ApiKey: encryptedApiKey}
 
 	_, err := SelectByUserId(userId)
 	if err != nil {
@@ -138,6 +141,10 @@ func GetBwgServerInfo(veid string, apiKey string) (*BwgServerInfo, error) {
 	if len(veid) == 0 || len(apiKey) == 0 {
 		return nil, errors.New("veid 或 apiKey 不可为空")
 	}
+
+	veid, _ = decryptString(veid)
+	apiKey, _ = decryptString(apiKey)
+
 	resp, err := http.Get(fmt.Sprintf("https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s", veid, apiKey))
 	if err != nil {
 		return nil, err
