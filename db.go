@@ -26,7 +26,7 @@ type BwgApiKey struct {
 }
 
 func InitSqlite() {
-	db, _ = sqlx.Open("sqlite3", "telegram.db")
+	db, _ = sqlx.Open("sqlite", "./telegram.db")
 
 	var name string
 	err := db.Get(&name, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bwg_api_key'")
