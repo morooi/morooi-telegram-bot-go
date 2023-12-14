@@ -37,7 +37,7 @@ jobs:
           GOOS=darwin GOARCH=arm64 go build -v -o asset/${{ env.ASSET_NAME }}-darwin-arm64 -ldflags "-s -w -buildid="
 
       - name: Upload files to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bot
           path: asset/*
