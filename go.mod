@@ -7,7 +7,7 @@ require (
 	github.com/logoove/sqlite v1.16.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.9.3
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	gopkg.in/telebot.v3 v3.2.1
 )
 
