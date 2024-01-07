@@ -149,7 +149,8 @@ func QueryXrayStatsHandler(c tele.Context) error {
 		return c.Send("获取流量情况失败")
 	}
 
-	if len(*xrayUserStatsList) == 0 {
+	isToday := time.Now().Format(DateFormat) == date
+	if len(*xrayUserStatsList) == 0 && !isToday {
 		return c.Send(ReplaceForMarkdownV2(fmt.Sprintf("%s 流量信息为空", date)))
 	}
 
@@ -168,6 +169,26 @@ func QueryXrayStatsHandler(c tele.Context) error {
 		} else {
 			userTraffic.Down = userTraffic.Down + xrayUserStats.Down
 			userTraffic.Up = userTraffic.Up + xrayUserStats.Up
+		}
+	}
+
+	// 如果是当天 统计还未落库的数据
+	if isToday {
+		trafficList, _ := GetTraffic(false)
+		for _, traffic := range trafficList {
+			userTraffic, ok := userTrafficMap[traffic.User]
+			if !ok {
+				userTraffic = &Traffic{
+					User: traffic.User,
+					Down: traffic.Down,
+					Up:   traffic.Up,
+				}
+				userTrafficMap[traffic.User] = userTraffic
+				userTrafficList = append(userTrafficList, userTraffic)
+			} else {
+				userTraffic.Down = userTraffic.Down + traffic.Down
+				userTraffic.Up = userTraffic.Up + traffic.Up
+			}
 		}
 	}
 
