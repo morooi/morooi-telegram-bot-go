@@ -11,10 +11,13 @@ import (
 var bot *tele.Bot
 
 func main() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, TimestampFormat: DateTimeFormat})
+
 	InitSqlite()
 	InitBot()
 	InitCommandHandler()
 	InitChacha20()
+	InitXrayStats()
 
 	for command := range commandHandlers {
 		commandHandler := commandHandlers[command]

@@ -20,6 +20,10 @@ services:
       - /home/user/telegram.db:/app/telegram.db
     environment:
       TOKEN: "YOUR TELEGRAM BOT API TOKEN"  # <-- 更改成你的 token
+      KEY: "YOUR TELEGRAM BOT API KEY"  # <-- 更改成你的 key
+      XRAY_API_HOST: "127.0.0.1"  # <-- 更改成你的 Xray API 监听地址
+      XRAY_API_PORT: "8080"  # <-- 更改成你的 Xray API 监听端口
+      XRAY_STATS_ADMIN: "XXXXXXX"  # <-- 更改成可以查询流量的 Telegram 用户 ID
     restart: unless-stopped
 ```
 

@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+const (
+	DateFormat       = "2006-01-02"
+	TimeFormat       = "15:04"
+	TimeSecondFormat = "15:04:05"
+	DateTimeFormat   = "2006-01-02 15:04:05"
+)
+
 func IsCommand(message *tele.Message) bool {
 	for _, entity := range message.Entities {
 		if entity.Type == tele.EntityCommand {

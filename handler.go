@@ -9,6 +9,8 @@ import (
 	tele "gopkg.in/telebot.v3"
 	"io"
 	"net/http"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,21 +23,23 @@ type CommandHandler struct {
 }
 
 const (
-	Info    Command = "/info"
-	Start   Command = "/start"
-	BwgBind Command = "/bwg_bind"
-	BwgInfo Command = "/bwg_info"
+	Info           Command = "/info"
+	Start          Command = "/start"
+	BwgBind        Command = "/bwg_bind"
+	BwgInfo        Command = "/bwg_info"
+	QueryXrayStats Command = "/xray_stats"
 )
 
 var commandHandlers map[Command]CommandHandler
 
 func InitCommandHandler() {
-	commandHandlers = make(map[Command]CommandHandler, 4)
+	commandHandlers = make(map[Command]CommandHandler, 5)
 
 	commandHandlers[Start] = CommandHandler{Start, StartHandler}
 	commandHandlers[Info] = CommandHandler{Info, InfoHandler}
 	commandHandlers[BwgBind] = CommandHandler{BwgBind, BwgBindHandler}
 	commandHandlers[BwgInfo] = CommandHandler{BwgInfo, BwgInfoHandler}
+	commandHandlers[QueryXrayStats] = CommandHandler{QueryXrayStats, QueryXrayStatsHandler}
 }
 
 func StartHandler(c tele.Context) error {
@@ -70,14 +74,14 @@ func BwgBindHandler(c tele.Context) error {
 	encryptedApiKey, _ := encryptString(args[1])
 	bwgApiKey := &BwgApiKey{UserId: userId, Veid: encryptedVeid, ApiKey: encryptedApiKey}
 
-	_, err := SelectByUserId(userId)
+	_, err := SelectBwgKeyByUserId(userId)
 	if err != nil {
-		insertErr := Insert(bwgApiKey)
+		insertErr := InsertBwgKey(bwgApiKey)
 		if insertErr != nil {
 			return c.Send("*绑定失败*！\n请稍后再试")
 		}
 	} else {
-		updateErr := UpdateByUserId(bwgApiKey)
+		updateErr := UpdateBwgKeyByUserId(bwgApiKey)
 		if updateErr != nil {
 			return c.Send("*绑定失败*！\n请稍后再试")
 		}
@@ -90,7 +94,7 @@ func BwgInfoHandler(c tele.Context) error {
 	message := c.Message()
 	userId := message.Sender.ID
 
-	bwgApiKey, err := SelectByUserId(userId)
+	bwgApiKey, err := SelectBwgKeyByUserId(userId)
 	if err != nil {
 		return c.Send("请先使用 /bwg\\_bind 命令绑定 VEID 和 API KEY")
 	}
@@ -107,13 +111,104 @@ func BwgInfoHandler(c tele.Context) error {
 	planMonthlyData := ReplaceForMarkdownV2(strconv.FormatInt(info.PlanMonthlyData>>30, 10))
 	dataPercent := ReplaceForMarkdownV2(decimal.NewFromInt(info.DataCounter).Mul(decimal.NewFromInt(100)).Div(decimal.NewFromInt(info.PlanMonthlyData)).Round(2).String())
 	nextDateResetDate := time.Unix(info.DataNextReset, 0)
-	dataNextReset := ReplaceForMarkdownV2(nextDateResetDate.Format("2006-01-02 15:04:05"))
+	dataNextReset := ReplaceForMarkdownV2(nextDateResetDate.Format(DateTimeFormat))
 	duration := GetDuration(nextDateResetDate)
 
 	reply := fmt.Sprintf("*主机名*：%s\n*IP*：`%s`\n*数据中心*：%s\n*流量使用情况*：%s GB / %s GB \\(%s %%\\)\n*流量重置时间*：%s\n*距离重置还有*：%s",
 		hostname, ipAddresses, nodeDatacenter, dataCounter, planMonthlyData, dataPercent, dataNextReset, duration)
 
 	return c.Send(reply)
+}
+
+func QueryXrayStatsHandler(c tele.Context) error {
+	// 判断查询权限
+	userId := c.Message().Sender.ID
+	xrayStatsAdmin := os.Getenv("XRAY_STATS_ADMIN")
+	if !strings.Contains(xrayStatsAdmin, strconv.FormatInt(userId, 10)) {
+		return c.Send("无查询权限")
+	}
+
+	var date string
+	args := c.Args()
+	if len(args) > 0 {
+		parsedDate, err := time.Parse("20060102", args[0])
+		if err != nil {
+			log.Error("日期解析错误: ", err)
+			return c.Send("获取流量情况失败")
+		}
+		date = parsedDate.Format(DateFormat)
+	}
+
+	if len(date) == 0 {
+		date = time.Now().Format(DateFormat)
+	}
+
+	xrayUserStatsList, err := SelectXrayUserStatsByDate(date)
+	if err != nil {
+		log.Error("获取流量情况失败", err)
+		return c.Send("获取流量情况失败")
+	}
+
+	if len(*xrayUserStatsList) == 0 {
+		return c.Send(ReplaceForMarkdownV2(fmt.Sprintf("%s 流量信息为空", date)))
+	}
+
+	userTrafficList := make([]*Traffic, 0)
+	userTrafficMap := map[string]*Traffic{}
+	for _, xrayUserStats := range *xrayUserStatsList {
+		userTraffic, ok := userTrafficMap[xrayUserStats.User]
+		if !ok {
+			userTraffic = &Traffic{
+				User: xrayUserStats.User,
+				Down: xrayUserStats.Down,
+				Up:   xrayUserStats.Up,
+			}
+			userTrafficMap[xrayUserStats.User] = userTraffic
+			userTrafficList = append(userTrafficList, userTraffic)
+		} else {
+			userTraffic.Down = userTraffic.Down + xrayUserStats.Down
+			userTraffic.Up = userTraffic.Up + xrayUserStats.Up
+		}
+	}
+
+	// 排序
+	sort.Slice(userTrafficList, func(i, j int) bool {
+		return userTrafficList[i].User < userTrafficList[j].User
+	})
+
+	var total int64 = 0
+	msgSlice := make([]string, 0)
+	msgSlice = append(msgSlice, fmt.Sprintf("*%s 流量使用情况*", ReplaceForMarkdownV2(date)))
+	for _, traffic := range userTrafficList {
+		userTotal := traffic.Up + traffic.Down
+		total = total + userTotal
+		trafficInfo := fmt.Sprintf("*%s*：%s", ReplaceForMarkdownV2(traffic.User), ReplaceForMarkdownV2(calculateTraffic(userTotal)))
+		msgSlice = append(msgSlice, trafficInfo)
+	}
+	msgSlice = append(msgSlice, fmt.Sprintf("*总流量*：%s", ReplaceForMarkdownV2(calculateTraffic(total))))
+
+	return c.Send(strings.Join(msgSlice, "\n"))
+}
+
+func calculateTraffic(byteSize int64) string {
+	const (
+		kb = 1024
+		mb = kb * 1024
+		gb = mb * 1024
+	)
+
+	decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(gb)).Round(2).String()
+
+	switch {
+	case byteSize >= gb:
+		return fmt.Sprintf("%s GB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(gb)).Round(2).String())
+	case byteSize >= mb:
+		return fmt.Sprintf("%s MB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(mb)).Round(2).String())
+	case byteSize >= kb:
+		return fmt.Sprintf("%s KB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(kb)).Round(2).String())
+	default:
+		return fmt.Sprintf("%d Bytes", byteSize)
+	}
 }
 
 func TextHandler(c tele.Context) error {
