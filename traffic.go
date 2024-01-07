@@ -61,7 +61,7 @@ func InitStatsJob() {
 }
 
 func checkAndUpdateXrayTraffic() {
-	traffics, err := GetTraffic(false)
+	traffics, err := GetTraffic(true)
 	if err != nil {
 		log.Error("获取 Xray 流量异常", err)
 		return
