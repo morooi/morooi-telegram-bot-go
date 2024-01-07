@@ -203,6 +203,9 @@ func QueryXrayStatsHandler(c tele.Context) error {
 	for _, traffic := range userTrafficList {
 		userTotal := traffic.Up + traffic.Down
 		total = total + userTotal
+		if total == 0 {
+			continue
+		}
 		trafficInfo := fmt.Sprintf("*%s*：%s", ReplaceForMarkdownV2(traffic.User), ReplaceForMarkdownV2(calculateTraffic(userTotal)))
 		msgSlice = append(msgSlice, trafficInfo)
 	}
