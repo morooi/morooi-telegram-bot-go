@@ -214,27 +214,6 @@ func QueryXrayStatsHandler(c tele.Context) error {
 	return c.Send(strings.Join(msgSlice, "\n"))
 }
 
-func calculateTraffic(byteSize int64) string {
-	const (
-		kb = 1024
-		mb = kb * 1024
-		gb = mb * 1024
-	)
-
-	decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(gb)).Round(2).String()
-
-	switch {
-	case byteSize >= gb:
-		return fmt.Sprintf("%s GB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(gb)).Round(2).String())
-	case byteSize >= mb:
-		return fmt.Sprintf("%s MB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(mb)).Round(2).String())
-	case byteSize >= kb:
-		return fmt.Sprintf("%s KB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(kb)).Round(2).String())
-	default:
-		return fmt.Sprintf("%d Bytes", byteSize)
-	}
-}
-
 func TextHandler(c tele.Context) error {
 	jsonMessage, _ := json.Marshal(c.Message())
 	log.Infof("收到请求：%s", jsonMessage)

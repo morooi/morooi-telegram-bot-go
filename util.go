@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/chacha20poly1305"
 	tele "gopkg.in/telebot.v3"
 	"os"
@@ -112,4 +113,23 @@ func decryptString(ciphertextBase64 string) (string, error) {
 	}
 
 	return string(decryptedText), nil
+}
+
+func calculateTraffic(byteSize int64) string {
+	const (
+		kb = 1024
+		mb = kb * 1024
+		gb = mb * 1024
+	)
+
+	switch {
+	case byteSize >= gb:
+		return fmt.Sprintf("%s GB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(gb)).Round(2).String())
+	case byteSize >= mb:
+		return fmt.Sprintf("%s MB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(mb)).Round(2).String())
+	case byteSize >= kb:
+		return fmt.Sprintf("%s KB", decimal.NewFromInt(byteSize).Div(decimal.NewFromInt(kb)).Round(2).String())
+	default:
+		return fmt.Sprintf("%d Bytes", byteSize)
+	}
 }
