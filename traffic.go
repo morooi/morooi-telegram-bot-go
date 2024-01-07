@@ -81,6 +81,9 @@ func checkAndUpdateXrayTraffic() {
 
 	xrayUserStatsList := make([]XrayUserStats, 0)
 	for _, traffic := range traffics {
+		if traffic.Up == 0 && traffic.Down == 0 {
+			continue
+		}
 		xrayUserStats := XrayUserStats{
 			User: traffic.User,
 			Date: formattedDate,
