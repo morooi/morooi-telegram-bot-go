@@ -194,7 +194,9 @@ func QueryXrayStatsHandler(c tele.Context) error {
 
 	// 排序
 	sort.Slice(userTrafficList, func(i, j int) bool {
-		return userTrafficList[i].User < userTrafficList[j].User
+		iTotal := userTrafficList[i].Down + userTrafficList[i].Up
+		jTotal := userTrafficList[j].Down + userTrafficList[j].Up
+		return iTotal > jTotal
 	})
 
 	var total int64 = 0
