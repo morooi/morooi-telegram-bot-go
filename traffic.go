@@ -79,7 +79,7 @@ func checkAndUpdateXrayTraffic() {
 	jsonString, _ := json.Marshal(traffics)
 	log.Infof("获取到 Xray 流量: %s", jsonString)
 
-	thisHour := time.Now().Truncate(time.Hour)
+	thisHour := time.Now().Add(-time.Minute).Truncate(time.Hour)
 	formattedDate := thisHour.Format(DateFormat)
 	formattedTime := thisHour.Format(TimeFormat)
 
