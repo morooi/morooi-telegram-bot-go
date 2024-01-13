@@ -49,7 +49,7 @@ func InitXrayApi() {
 func InitStatsJob() {
 	c := cron.New()
 
-	_, err := c.AddFunc("0 */1 * * *", func() {
+	_, err := c.AddFunc("*/5 * * * *", func() {
 		checkAndUpdateXrayTraffic()
 	})
 	if err != nil {
@@ -75,28 +75,45 @@ func checkAndUpdateXrayTraffic() {
 	jsonString, _ := json.Marshal(traffics)
 	log.Infof("获取到 Xray 流量: %s", jsonString)
 
-	oneHourAgo := time.Now().Add(-time.Hour)
-	formattedDate := oneHourAgo.Format(DateFormat)
-	formattedTime := oneHourAgo.Format(TimeFormat)
+	thisHour := time.Now().Truncate(time.Hour)
+	formattedDate := thisHour.Format(DateFormat)
+	formattedTime := thisHour.Format(TimeFormat)
 
-	xrayUserStatsList := make([]XrayUserStats, 0)
 	for _, traffic := range traffics {
 		if traffic.Up == 0 && traffic.Down == 0 {
 			continue
 		}
-		xrayUserStats := XrayUserStats{
-			User: traffic.User,
-			Date: formattedDate,
-			Time: formattedTime,
-			Down: traffic.Down,
-			Up:   traffic.Up,
+		data, err := SelectXrayUserStatsByUserAndDateTime(traffic.User, formattedDate, formattedTime)
+		if err != nil {
+			continue
 		}
-		xrayUserStatsList = append(xrayUserStatsList, xrayUserStats)
-	}
-
-	err = BatchInsertXrayUserStats(xrayUserStatsList)
-	if err != nil {
-		log.Error("保存 Xray 流量异常", err)
+		if data == nil {
+			// 新增
+			xrayUserStats := &XrayUserStats{
+				User: traffic.User,
+				Date: formattedDate,
+				Time: formattedTime,
+				Down: traffic.Down,
+				Up:   traffic.Up,
+			}
+			err := InsertXrayUserStats(xrayUserStats)
+			if err != nil {
+				log.Error("保存 Xray 流量异常", err)
+			}
+		} else {
+			// 更新
+			xrayUserStats := &XrayUserStats{
+				User: traffic.User,
+				Date: formattedDate,
+				Time: formattedTime,
+				Down: traffic.Down + data.Down,
+				Up:   traffic.Up + data.Up,
+			}
+			err := UpdateXrayUserStats(xrayUserStats)
+			if err != nil {
+				log.Error("保存 Xray 流量异常", err)
+			}
+		}
 	}
 }
 

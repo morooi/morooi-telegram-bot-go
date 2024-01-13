@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/logoove/sqlite"
@@ -130,4 +131,36 @@ func BatchInsertXrayUserStats(xrayUserStatsList []XrayUserStats) error {
 
 	_, err := db.NamedExec("INSERT INTO xray_user_stats (user, date, time, down, up) VALUES (:user, :date, :time, :down, :up)", xrayUserStatsList)
 	return err
+}
+
+func InsertXrayUserStats(xrayUserStats *XrayUserStats) error {
+	if xrayUserStats == nil {
+		return nil
+	}
+
+	_, err := db.NamedExec("INSERT INTO xray_user_stats (user, date, time, down, up) VALUES (:user, :date, :time, :down, :up)", xrayUserStats)
+	return err
+}
+
+func UpdateXrayUserStats(xrayUserStats *XrayUserStats) error {
+	if xrayUserStats == nil {
+		return nil
+	}
+	_, err := db.Exec("update xray_user_stats set down = ?, up = ? where user = ? and date = ? and time = ?",
+		xrayUserStats.Down, xrayUserStats.Up, xrayUserStats.User, xrayUserStats.Date, xrayUserStats.Time)
+	return err
+}
+
+func SelectXrayUserStatsByUserAndDateTime(user string, date string, time string) (*XrayUserStats, error) {
+	if len(date) == 0 {
+		return nil, errors.New("时间不可为空")
+	}
+	xrayUserStats := &XrayUserStats{}
+	err := db.Get(xrayUserStats, "select pid, user, date, time, down, up from xray_user_stats where user = ? and date = ? and time = ?", user, date, time)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return xrayUserStats, nil
 }
