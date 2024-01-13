@@ -24,6 +24,7 @@ services:
       XRAY_API_HOST: "127.0.0.1"  # <-- 更改成你的 Xray API 监听地址
       XRAY_API_PORT: "8080"  # <-- 更改成你的 Xray API 监听端口
       XRAY_STATS_ADMIN: "XXXXXXX"  # <-- 更改成可以查询流量的 Telegram 用户 ID
+      XRAY_STATS_CRON: "*/5 * * * *"  # <-- 数据收集的频率
     restart: unless-stopped
 ```
 

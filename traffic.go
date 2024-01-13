@@ -48,8 +48,12 @@ func InitXrayApi() {
 
 func InitStatsJob() {
 	c := cron.New()
+	cronStr := os.Getenv("XRAY_STATS_CRON")
+	if len(cronStr) == 0 {
+		cronStr = "*/5 * * * *"
+	}
 
-	_, err := c.AddFunc("*/5 * * * *", func() {
+	_, err := c.AddFunc(cronStr, func() {
 		checkAndUpdateXrayTraffic()
 	})
 	if err != nil {
