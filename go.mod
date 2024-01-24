@@ -12,7 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xtls/xray-core v1.8.7
 	golang.org/x/crypto v0.18.0
-	google.golang.org/grpc v1.60.1
+	google.golang.org/grpc v1.61.0
 	gopkg.in/telebot.v3 v3.2.1
 )
 
