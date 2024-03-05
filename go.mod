@@ -10,7 +10,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xtls/xray-core v1.8.8
-	golang.org/x/crypto v0.19.0
+	golang.org/x/crypto v0.21.0
 	google.golang.org/grpc v1.62.0
 	gopkg.in/telebot.v3 v3.2.1
 )
@@ -26,7 +26,7 @@ require (
 	github.com/sagernet/sing v0.3.2 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240221002015-b0ce06bbee7c // indirect
