@@ -11,13 +11,12 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/xtls/xray-core v1.8.10
 	golang.org/x/crypto v0.21.0
-	google.golang.org/grpc v1.62.1
+	google.golang.org/grpc v1.63.0
 	gopkg.in/telebot.v3 v3.2.1
 )
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
