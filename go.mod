@@ -4,7 +4,7 @@ go 1.21.4
 toolchain go1.22.2
 
 require (
-	github.com/jmoiron/sqlx v1.3.5
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/logoove/sqlite v1.16.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.3.1
