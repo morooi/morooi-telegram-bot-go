@@ -1,7 +1,7 @@
 module github.com/morooi/morooi-telegram-bot-go
 
 go 1.21.4
-toolchain go1.22.4
+toolchain go1.22.5
 
 require (
 	github.com/jmoiron/sqlx v1.4.0
@@ -9,9 +9,9 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/xtls/xray-core v1.8.16
+	github.com/xtls/xray-core v1.8.17
 	golang.org/x/crypto v0.25.0
-	google.golang.org/grpc v1.64.0
+	google.golang.org/grpc v1.65.0
 	gopkg.in/telebot.v3 v3.3.6
 )
 
@@ -24,7 +24,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sagernet/sing v0.4.1 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
