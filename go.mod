@@ -1,6 +1,7 @@
 module github.com/morooi/morooi-telegram-bot-go
 
 go 1.21.4
+
 toolchain go1.22.5
 
 require (
@@ -9,7 +10,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/xtls/xray-core v1.8.18
+	github.com/xtls/xray-core v1.8.19
 	golang.org/x/crypto v0.25.0
 	google.golang.org/grpc v1.65.0
 	gopkg.in/telebot.v3 v3.3.6
