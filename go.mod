@@ -10,7 +10,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/xtls/xray-core v1.8.20
+	github.com/xtls/xray-core v1.8.21
 	golang.org/x/crypto v0.25.0
 	google.golang.org/grpc v1.65.0
 	gopkg.in/telebot.v3 v3.3.6
