@@ -13,7 +13,7 @@ require (
 	github.com/xtls/xray-core v1.8.23
 	golang.org/x/crypto v0.25.0
 	google.golang.org/grpc v1.65.0
-	gopkg.in/telebot.v3 v3.3.6
+	gopkg.in/telebot.v3 v3.3.7
 )
 
 require (
