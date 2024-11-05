@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/robfig/cron/v3"
+	"github.com/shopspring/decimal"
 	log "github.com/sirupsen/logrus"
 	statsService "github.com/xtls/xray-core/app/stats/command"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	tele "gopkg.in/telebot.v3"
 	"os"
 	"regexp"
 	"strconv"
@@ -31,6 +33,7 @@ var xrayApi *XrayApi
 func InitXrayStats() {
 	InitXrayApi()
 	InitStatsJob()
+	InitServerTrafficJob()
 }
 
 func InitXrayApi() {
@@ -55,6 +58,24 @@ func InitStatsJob() {
 
 	_, err := c.AddFunc(cronStr, func() {
 		checkAndUpdateXrayTraffic()
+	})
+	if err != nil {
+		fmt.Println("添加定时任务失败:", err)
+		return
+	}
+
+	c.Start()
+}
+
+func InitServerTrafficJob() {
+	c := cron.New()
+	cronStr := os.Getenv("SERVER_TRAFFIC_CRON")
+	if len(cronStr) == 0 {
+		cronStr = "0 */6 * * *"
+	}
+
+	_, err := c.AddFunc(cronStr, func() {
+		checkBandwidthUsage()
 	})
 	if err != nil {
 		fmt.Println("添加定时任务失败:", err)
@@ -121,10 +142,38 @@ func checkAndUpdateXrayTraffic() {
 	}
 }
 
+func checkBandwidthUsage() {
+	veid := os.Getenv("BWG_VEID")
+	apiKey := os.Getenv("BWG_API_KEY")
+	channelID, err := strconv.ParseInt(os.Getenv("SEND_MESSAGE_CHANNEL_ID"), 10, 64)
+	if err != nil {
+		log.Errorf("Invalid channel ID: %v", err)
+		return
+	}
+
+	info, err := GetBwgServerInfo(veid, apiKey)
+	if err != nil {
+		log.Printf("获取搬瓦工信息失败: %v", err)
+		return
+	}
+
+	usedPercentage := decimal.NewFromInt(info.DataCounter).Mul(decimal.NewFromInt(100)).Div(decimal.NewFromInt(info.PlanMonthlyData))
+	if usedPercentage.GreaterThanOrEqual(decimal.NewFromInt(10)) {
+		message := buildServerInfoMessage(info)
+		message = fmt.Sprintf("*重要！！流量已使用 %s %%*\n%s\n",
+			ReplaceForMarkdownV2("==================="),
+			ReplaceForMarkdownV2(usedPercentage.Round(2).String())) + message
+		_, err := bot.Send(tele.ChatID(channelID), message)
+		if err != nil {
+			log.Errorf("发送消息失败: %v", err)
+		}
+	}
+}
+
 var trafficRegex = regexp.MustCompile("user>>>([^>]+)>>>traffic>>>(downlink|uplink)")
 
 func GetTraffic(reset bool) ([]*Traffic, error) {
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", xrayApi.Host, xrayApi.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", xrayApi.Host, xrayApi.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

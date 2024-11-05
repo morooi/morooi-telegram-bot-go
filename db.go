@@ -100,18 +100,6 @@ func UpdateBwgKeyByUserId(bwgApiKey *BwgApiKey) error {
 	return nil
 }
 
-func SelectXrayUserStatsByRange(start string, end string) (*[]XrayUserStats, error) {
-	if len(start) == 0 || len(end) == 0 {
-		return nil, errors.New("开始时间 或 结束时间 不可为空")
-	}
-	xrayUserStatsList := make([]XrayUserStats, 0)
-	err := db.Select(&xrayUserStatsList, "select pid, user, date, time, down, up from xray_user_stats where date > ? and date <= ?", start, end)
-	if err != nil {
-		return nil, err
-	}
-	return &xrayUserStatsList, nil
-}
-
 func SelectXrayUserStatsByDate(date string) (*[]XrayUserStats, error) {
 	if len(date) == 0 {
 		return nil, errors.New("时间不可为空")
@@ -122,15 +110,6 @@ func SelectXrayUserStatsByDate(date string) (*[]XrayUserStats, error) {
 		return nil, err
 	}
 	return &xrayUserStatsList, nil
-}
-
-func BatchInsertXrayUserStats(xrayUserStatsList []XrayUserStats) error {
-	if xrayUserStatsList == nil {
-		return nil
-	}
-
-	_, err := db.NamedExec("INSERT INTO xray_user_stats (user, date, time, down, up) VALUES (:user, :date, :time, :down, :up)", xrayUserStatsList)
-	return err
 }
 
 func InsertXrayUserStats(xrayUserStats *XrayUserStats) error {

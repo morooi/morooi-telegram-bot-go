@@ -99,11 +99,20 @@ func BwgInfoHandler(c tele.Context) error {
 		return c.Send("请先使用 /bwg\\_bind 命令绑定 VEID 和 API KEY")
 	}
 
-	info, err := GetBwgServerInfo(bwgApiKey.Veid, bwgApiKey.ApiKey)
+	veid, _ := decryptString(bwgApiKey.Veid)
+	apiKey, _ := decryptString(bwgApiKey.ApiKey)
+
+	info, err := GetBwgServerInfo(veid, apiKey)
 	if err != nil || info == nil || info.Error != 0 {
 		return c.Send("获取服务器信息失败，请确认 VEID 和 API KEY 是否正确\n确认后重新使用 /bwg\\_bind 命令更新信息")
 	}
 
+	reply := buildServerInfoMessage(info)
+
+	return c.Send(reply)
+}
+
+func buildServerInfoMessage(info *BwgServerInfo) string {
 	hostname := ReplaceForMarkdownV2(info.HostName)
 	ipAddresses := ReplaceForMarkdownV2(strings.Join(info.IpAddresses, ", "))
 	nodeDatacenter := ReplaceForMarkdownV2(info.NodeDataCenter)
@@ -116,8 +125,7 @@ func BwgInfoHandler(c tele.Context) error {
 
 	reply := fmt.Sprintf("*主机名*：%s\n*IP*：`%s`\n*数据中心*：%s\n*流量使用情况*：%s GB / %s GB \\(%s %%\\)\n*流量重置时间*：%s\n*距离重置还有*：%s",
 		hostname, ipAddresses, nodeDatacenter, dataCounter, planMonthlyData, dataPercent, dataNextReset, duration)
-
-	return c.Send(reply)
+	return reply
 }
 
 func QueryXrayStatsHandler(c tele.Context) error {
@@ -241,9 +249,6 @@ func GetBwgServerInfo(veid string, apiKey string) (*BwgServerInfo, error) {
 	if len(veid) == 0 || len(apiKey) == 0 {
 		return nil, errors.New("veid 或 apiKey 不可为空")
 	}
-
-	veid, _ = decryptString(veid)
-	apiKey, _ = decryptString(apiKey)
 
 	resp, err := http.Get(fmt.Sprintf("https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s", veid, apiKey))
 	if err != nil {
