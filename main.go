@@ -22,7 +22,7 @@ func main() {
 
 	for command := range commandHandlers {
 		commandHandler := commandHandlers[command]
-		bot.Handle(commandHandler.command, commandHandler.command]
+		bot.Handle(commandHandler.command, commandHandler.handler)
 	}
 	bot.Handle(tele.OnText, TextHandler)
 
