@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,9 +10,11 @@ import (
 	statsService "github.com/xtls/xray-core/app/stats/command"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,7 +57,7 @@ func InitStatsJob() {
 	}
 
 	_, err := c.AddFunc(cronStr, func() {
-		checkAndUpdateXrayTraffic()
+		CheckAndUpdateXrayTraffic()
 	})
 	if err != nil {
 		fmt.Println("添加定时任务失败:", err)
@@ -64,7 +67,95 @@ func InitStatsJob() {
 	c.Start()
 }
 
-func checkAndUpdateXrayTraffic() {
+func InitXrayLog() {
+	logChannel := make(chan XrayLog, 300)
+	logFilePath := os.Getenv("XRAY_LOG_PATH")
+	if len(logFilePath) == 0 {
+		logFilePath = "/var/log/xray/access.log"
+	}
+
+	// 启动日志文件监听的 goroutine
+	go watchXrayLogFile(logFilePath, logChannel)
+
+	// 启动日志处理 goroutine
+	go saveXrayLogEntries(logChannel)
+}
+
+func watchXrayLogFile(logFilePath string, logChannel chan XrayLog) {
+	file, err := os.Open(logFilePath)
+	if err != nil {
+		log.Fatalf("无法打开日志文件: %v", err)
+	}
+	defer file.Close()
+
+	// 定位到文件末尾，模拟 `tail -f`
+	_, _ = file.Seek(0, io.SeekEnd)
+	reader := bufio.NewReader(file)
+
+	for {
+		// 每次读取一行
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			// EOF 时暂停读取一段时间，等待新日志写入
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		// 解析日志行
+		entry, ok := parseXrayLogEntry(line)
+		if ok {
+			// 将解析结果发送到 logChannel
+			logChannel <- entry
+		}
+	}
+}
+
+func saveXrayLogEntries(logChannel chan XrayLog) {
+	for entry := range logChannel {
+		// 数据插入数据库
+		_ = InsertXrayLog(&entry)
+	}
+}
+
+func parseXrayLogEntry(line string) (XrayLog, bool) {
+	re := regexp.MustCompile(`(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) from (?:tcp:|udp:)?(\d+\.\d+\.\d+\.\d+)(?::\d+)? accepted (?:tcp:|udp:)?([\w.-]+)(?::\d+)? \[(.+?) [->]+ (\w+)] email: (.+)`)
+	match := re.FindStringSubmatch(line)
+
+	if match == nil {
+		return XrayLog{}, false
+	}
+
+	// 如果匹配不完整，跳过
+	if len(match) < 7 {
+		return XrayLog{}, false
+	}
+
+	ip := match[2]
+	if ip == "127.0.0.1" {
+		return XrayLog{}, false
+	}
+
+	timestamp, err := time.Parse("2006/01/02 15:04:05", match[1])
+	if err != nil {
+		log.Println("时间解析错误:", err)
+		return XrayLog{}, false
+	}
+
+	user := strings.Split(match[6], "-")[0]
+
+	entry := XrayLog{
+		User:      user,
+		IP:        ip,
+		Target:    match[3],
+		Inbound:   match[4],
+		Outbound:  match[5],
+		Timestamp: timestamp,
+	}
+
+	return entry, true
+}
+
+func CheckAndUpdateXrayTraffic() {
 	traffics, err := GetTraffic(true)
 	if err != nil {
 		log.Error("获取 Xray 流量异常", err)

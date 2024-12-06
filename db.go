@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/logoove/sqlite"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 const bwgApiKeySchema = `
@@ -27,6 +28,17 @@ const xrayUserStatsSchema = `
 		up integer NOT NULL);
 `
 
+const xrayLogSchema = `
+	CREATE TABLE IF NOT EXISTS xray_log (
+		pid integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+		user text NOT NULL,
+		ip text NOT NULL,
+		target text NOT NULL,
+		inbound text NOT NULL,
+		outbound text NOT NULL,
+		timestamp DATETIME NOT NULL);
+`
+
 var db *sqlx.DB
 
 type BwgApiKey struct {
@@ -45,22 +57,39 @@ type XrayUserStats struct {
 	Up   int64  `db:"up" json:"up"`
 }
 
+type XrayLog struct {
+	Pid       int64     `db:"pid"`
+	User      string    `db:"user"`
+	IP        string    `db:"ip"`
+	Target    string    `db:"target"`
+	Inbound   string    `db:"inbound"`
+	Outbound  string    `db:"outbound"`
+	Timestamp time.Time `db:"timestamp"`
+}
+
 func InitSqlite() {
 	db, _ = sqlx.Open("sqlite", "./telegram.db")
 
 	var name string
 	err := db.Get(&name, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bwg_api_key'")
 	if err != nil {
-		log.Info("初始化搬瓦工KEY数据库...")
+		log.Info("初始化搬瓦工 KEY 数据库...")
 		_, _ = db.Exec(bwgApiKeySchema)
-		log.Info("初始化搬瓦工KEY数据库完成")
+		log.Info("初始化搬瓦工 KEY 数据库完成")
 	}
 
 	err = db.Get(&name, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'xray_user_stats'")
 	if err != nil {
-		log.Info("初始化Xray用户信息数据库...")
+		log.Info("初始化 Xray 用户信息数据库...")
 		_, _ = db.Exec(xrayUserStatsSchema)
-		log.Info("初始化Xray用户信息数据库完成")
+		log.Info("初始化 Xray 用户信息数据库完成")
+	}
+
+	err = db.Get(&name, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'xray_log'")
+	if err != nil {
+		log.Info("初始化 Xray 日志数据库...")
+		_, _ = db.Exec(xrayLogSchema)
+		log.Info("初始化 Xray 日志数据库完成")
 	}
 }
 
@@ -142,4 +171,19 @@ func SelectXrayUserStatsByUserAndDateTime(user string, date string, time string)
 		return nil, err
 	}
 	return xrayUserStats, nil
+}
+
+func InsertXrayLog(xrayLog *XrayLog) error {
+	if xrayLog == nil {
+		return nil
+	}
+
+	insertSQL := `
+		INSERT INTO xray_log 
+		    (user, ip, target, inbound, outbound, timestamp)
+		VALUES 
+		    (:user, :ip, :target, :inbound, :outbound, :timestamp)
+	`
+	_, err := db.NamedExec(insertSQL, xrayLog)
+	return err
 }
