@@ -15,16 +15,16 @@ func main() {
 
 	InitSqlite()
 	InitBot()
-	//InitCommandHandler()
-	//InitChacha20()
-	//InitXrayStats()
+	InitCommandHandler()
+	InitChacha20()
+	InitXrayStats()
 	InitXrayLog()
 
-	//for command := range commandHandlers {
-	//	commandHandler := commandHandlers[command]
-	//	bot.Handle(commandHandler.command, commandHandler.handler)
-	//}
-	//bot.Handle(tele.OnText, TextHandler)
+	for command := range commandHandlers {
+		commandHandler := commandHandlers[command]
+		bot.Handle(commandHandler.command, commandHandler.command]
+	}
+	bot.Handle(tele.OnText, TextHandler)
 
 	log.Info("Telegram Bot 已启动")
 	bot.Start()
