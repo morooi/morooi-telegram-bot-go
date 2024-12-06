@@ -12,8 +12,4 @@ services:
       XRAY_API_PORT: "8080"
       XRAY_STATS_ADMIN: "XXXXXXX"
       XRAY_STATS_CRON: "*/5 * * * *"
-      SERVER_TRAFFIC_CRON: "0 */6 * * *"
-      BWG_VEID: "XXXXXXX"
-      BWG_API_KEY: "XXXXXXX"
-      SEND_MESSAGE_CHANNEL_ID: "XXXXXXX"
     restart: unless-stopped
