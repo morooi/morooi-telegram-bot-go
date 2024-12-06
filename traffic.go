@@ -131,7 +131,7 @@ func parseXrayLogEntry(line string) (XrayLog, bool) {
 	}
 
 	ip := match[2]
-	if ip == "127.0.0.1" {
+	if ip == "127.0.0.1" || ip == "1.1.1.1" || ip == "8.8.8.8" {
 		return XrayLog{}, false
 	}
 
