@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/logoove/sqlite"
@@ -57,14 +58,24 @@ type XrayUserStats struct {
 	Up   int64  `db:"up" json:"up"`
 }
 
+type RequestTime struct {
+	time.Time
+}
+
+func (ct RequestTime) MarshalJSON() ([]byte, error) {
+	// 定义格式化的时间字符串
+	formatted := ct.Format("2006-01-02 15:04:05")
+	return json.Marshal(formatted)
+}
+
 type XrayLog struct {
-	Pid       int64     `db:"pid"`
-	User      string    `db:"user"`
-	IP        string    `db:"ip"`
-	Target    string    `db:"target"`
-	Inbound   string    `db:"inbound"`
-	Outbound  string    `db:"outbound"`
-	Timestamp time.Time `db:"timestamp"`
+	Pid         int64       `db:"pid" json:"pid"`
+	User        string      `db:"user" json:"user"`
+	IP          string      `db:"ip" json:"ip"`
+	Target      string      `db:"target" json:"target"`
+	Inbound     string      `db:"inbound" json:"inbound"`
+	Outbound    string      `db:"outbound" json:"outbound"`
+	RequestTime RequestTime `db:"timestamp" json:"request_time"`
 }
 
 func InitSqlite() {

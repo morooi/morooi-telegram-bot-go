@@ -26,6 +26,8 @@ services:
       XRAY_STATS_ADMIN: "XXXXXXX"  # <-- 更改成可以查询流量的 Telegram 用户 ID
       XRAY_STATS_CRON: "*/5 * * * *"  # <-- 数据收集的频率
       XRAY_LOG_PATH: "/var/log/xray/access.log"  # <-- Xray 日志路径
+      CF_D1_INSERT_URL: ""
+      CF_D1_REQUEST_TOKEN: ""
     restart: unless-stopped
 ```
 

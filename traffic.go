@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -111,9 +113,53 @@ func watchXrayLogFile(logFilePath string, logChannel chan XrayLog) {
 }
 
 func saveXrayLogEntries(logChannel chan XrayLog) {
+	var entries []XrayLog
+	count := 0
 	for entry := range logChannel {
 		// 数据插入数据库
 		_ = InsertXrayLog(&entry)
+		entries = append(entries, entry)
+		count++
+		if count >= 20 {
+			// 保存到 CF D1 数据库
+			saveToCloudFlareD1(entries)
+			entries = []XrayLog{}
+			count = 0
+		}
+	}
+}
+
+func saveToCloudFlareD1(entries []XrayLog) {
+	records := map[string]interface{}{
+		"records": entries,
+	}
+	jsonData, err := json.Marshal(records)
+	if err != nil {
+		log.Error("JSON 序列化错误:", err)
+		return
+	}
+
+	url := os.Getenv("CF_D1_INSERT_URL")
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Error("创建 CF D1 请求错误:", err)
+		return
+	}
+
+	token := os.Getenv("CF_D1_REQUEST_TOKEN")
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error("发送 CF D1 请求错误:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Error("CF D1 请求失败，状态码:", resp.StatusCode)
 	}
 }
 
@@ -135,7 +181,7 @@ func parseXrayLogEntry(line string) (XrayLog, bool) {
 		return XrayLog{}, false
 	}
 
-	timestamp, err := time.Parse("2006/01/02 15:04:05", match[1])
+	requestTime, err := time.Parse("2006/01/02 15:04:05", match[1])
 	if err != nil {
 		log.Println("时间解析错误:", err)
 		return XrayLog{}, false
@@ -144,12 +190,12 @@ func parseXrayLogEntry(line string) (XrayLog, bool) {
 	user := strings.Split(match[6], "-")[0]
 
 	entry := XrayLog{
-		User:      user,
-		IP:        ip,
-		Target:    match[3],
-		Inbound:   match[4],
-		Outbound:  match[5],
-		Timestamp: timestamp,
+		User:        user,
+		IP:          ip,
+		Target:      match[3],
+		Inbound:     match[4],
+		Outbound:    match[5],
+		RequestTime: RequestTime{requestTime},
 	}
 
 	return entry, true

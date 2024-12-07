@@ -13,4 +13,6 @@ services:
       XRAY_STATS_ADMIN: "XXXXXXX"
       XRAY_STATS_CRON: "*/5 * * * *"
       XRAY_LOG_PATH: "/var/log/xray/access.log"
+      CF_D1_INSERT_URL: ""
+      CF_D1_REQUEST_TOKEN: ""
     restart: unless-stopped
