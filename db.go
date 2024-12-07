@@ -69,7 +69,7 @@ func (ct RequestTime) MarshalJSON() ([]byte, error) {
 }
 
 type XrayLog struct {
-	Pid         int64       `db:"pid" json:"pid"`
+	Pid         int64       `db:"pid" json:"-"`
 	User        string      `db:"user" json:"user"`
 	IP          string      `db:"ip" json:"ip"`
 	Target      string      `db:"target" json:"target"`
