@@ -120,7 +120,7 @@ func saveXrayLogEntries(logChannel chan XrayLog) {
 		_ = InsertXrayLog(&entry)
 		entries = append(entries, entry)
 		count++
-		if count >= 20 {
+		if count == 10 {
 			// 保存到 CF D1 数据库
 			saveToCloudFlareD1(entries)
 			entries = []XrayLog{}
