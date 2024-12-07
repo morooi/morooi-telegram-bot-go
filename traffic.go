@@ -159,7 +159,8 @@ func saveToCloudFlareD1(entries []XrayLog) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error("CF D1 请求失败，状态码:", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		log.Errorf("CF D1 请求失败，状态码: %d，返回内容: %s", resp.StatusCode, string(body))
 	}
 }
 
