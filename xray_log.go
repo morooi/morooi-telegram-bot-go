@@ -40,7 +40,8 @@ func init() {
 	logChannel := make(chan XrayLog, 300)
 	logFilePath := os.Getenv("XRAY_LOG_PATH")
 	if len(logFilePath) == 0 {
-		logFilePath = "/var/log/xray/access.log"
+		log.Info("未设置 Xray 日志文件路径")
+		return
 	}
 
 	XrayServerName = os.Getenv("XRAY_SERVER_NAME")
