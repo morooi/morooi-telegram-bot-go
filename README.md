@@ -28,6 +28,7 @@ services:
       XRAY_LOG_PATH: "/var/log/xray/access.log"  # <-- Xray 日志路径
       CF_D1_INSERT_URL: ""
       CF_D1_REQUEST_TOKEN: ""
+      XRAY_SERVER_NAME: ""
     restart: unless-stopped
 ```
 

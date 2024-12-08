@@ -18,7 +18,6 @@ func main() {
 	InitCommandHandler()
 	InitChacha20()
 	InitXrayStats()
-	InitXrayLog()
 
 	for command := range commandHandlers {
 		commandHandler := commandHandlers[command]
