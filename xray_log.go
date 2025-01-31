@@ -135,7 +135,7 @@ func saveToCloudFlareD1(entries []XrayLog) {
 }
 
 func parseXrayLogEntry(line string) (XrayLog, bool) {
-	re := regexp.MustCompile(`(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) from (?:tcp:|udp:)?\[?([0-9a-fA-F:]+|\d+\.\d+\.\d+\.\d+)]?(?::\d+)? accepted (?:tcp:|udp:)?([\w.-]+)(?::\d+)? \[(.+?) [->]+ (.+?)] email: (.+)`)
+	re := regexp.MustCompile(`(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{6}) from (?:tcp:|udp:)?\[?([0-9a-fA-F:]+|\d+\.\d+\.\d+\.\d+)]?(?::\d+)? accepted (?:tcp:|udp:)?([\w.-]+)(?::\d+)? \[(.+?) [->]+ (.+?)] email: (.+)`)
 	match := re.FindStringSubmatch(line)
 
 	if match == nil {
