@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/logoove/sqlite"
 	log "github.com/sirupsen/logrus"
+	_ "modernc.org/sqlite"
 )
 
 const bwgApiKeySchema = `
